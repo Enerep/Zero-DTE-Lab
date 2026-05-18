@@ -27,6 +27,20 @@ Build a fast trading-game interface where users can practice buying and selling 
 - Long option trades first: buy to open, sell to close.
 - Simplified pricing logic, not broker-grade modeling.
 
+## Run Locally
+
+```bash
+npm install
+npm run dev
+```
+
+Other useful commands:
+
+```bash
+npm run build
+npm audit
+```
+
 ## UX Shape
 
 The first screen should be the simulator, not a marketing page.
@@ -46,3 +60,4 @@ Main panels:
 - Keep all trading copy educational and avoid real-money advice.
 - Prefer clear, inspectable formulas over complex financial modeling.
 - Design for future LLM contributors: small modules, named state transitions, and concise docs.
+- Keep dependencies minimal and pinned in `package-lock.json`.
