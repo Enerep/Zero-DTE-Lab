@@ -4,12 +4,13 @@ Zero DTE Lab is a client-side simulator with a small deterministic market engine
 
 ## Main Modules
 
-- `marketEngine`: advances fake stock price once per second.
-- `eventEngine`: injects random market events and changes drift, volatility, or IV.
-- `optionsEngine`: builds the call/put chain and recalculates price, Greeks, IV, and theta.
-- `portfolioEngine`: tracks cash, open positions, closed trades, and P/L.
-- `explanationEngine`: creates simple educational summaries after trades close.
-- `ui`: renders chart, chain, portfolio, feed, history, and trade controls.
+- `src/engines/marketEngine.ts`: advances fake stock price once per second.
+- `src/engines/eventEngine.ts`: injects random market events and changes drift, volatility, or IV.
+- `src/engines/optionsEngine.ts`: builds the call/put chain and recalculates price, Greeks, IV, and theta.
+- `src/engines/portfolioEngine.ts`: tracks cash, open positions, closed trades, and P/L.
+- `src/engines/explanationEngine.ts`: creates simple educational summaries after trades close.
+- `src/main.tsx`: renders chart, chain, portfolio, feed, history, and trade controls.
+- `src/types.ts`, `src/constants.ts`, `src/lib/*`: shared contracts, constants, and helpers.
 
 ## State Model
 
