@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { CONTRACT_MULTIPLIER, STARTING_CASH } from "./constants";
 import { advanceMarket, getSecondsLeft, initialState } from "./engines/marketEngine";
-import { buildChain, getContract } from "./engines/optionsEngine";
+import { buildChain, pricePositionContract } from "./engines/optionsEngine";
 import {
   buyToOpen,
   getPositionValue,
@@ -30,8 +30,8 @@ function App() {
 
   const secondsLeft = getSecondsLeft(state.tick);
   const chain = useMemo(() => buildChain(state.price, secondsLeft, state.baseIv), [state.price, secondsLeft, state.baseIv]);
-  const positionValue = getPositionValue(state.positions, chain);
-  const unrealizedPl = getUnrealizedPl(state.positions, chain);
+  const positionValue = getPositionValue(state.positions, state.price, secondsLeft, state.baseIv);
+  const unrealizedPl = getUnrealizedPl(state.positions, state.price, secondsLeft, state.baseIv);
   const realizedPl = getRealizedPl(state);
   const accountValue = state.cash + positionValue;
   const latestExplanation = state.trades[0]?.explanation;
@@ -99,8 +99,8 @@ function App() {
               <p className="empty">No open contracts.</p>
             ) : (
               state.positions.map((position) => {
-                const contract = getContract(chain, position.contractId);
-                const pl = ((contract?.bid ?? 0) - position.entryPrice) * CONTRACT_MULTIPLIER;
+                const contract = pricePositionContract(position, state.price, secondsLeft, state.baseIv);
+                const pl = (contract.bid - position.entryPrice) * CONTRACT_MULTIPLIER;
                 return (
                   <div className="position-row" key={position.id}>
                     <span>

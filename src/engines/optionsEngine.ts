@@ -1,6 +1,6 @@
 import { EXPIRATION_SECONDS } from "../constants";
 import { clamp } from "../lib/math";
-import type { ChainRow, Contract, OptionSide } from "../types";
+import type { ChainRow, Contract, OptionSide, Position } from "../types";
 
 export function priceOption(side: OptionSide, stockPrice: number, strike: number, secondsLeft: number, baseIv: number): Contract {
   const intrinsic = side === "call" ? Math.max(0, stockPrice - strike) : Math.max(0, strike - stockPrice);
@@ -44,4 +44,8 @@ export function getContract(chain: ChainRow[], contractId: string) {
     if (row.put.id === contractId) return row.put;
   }
   return null;
+}
+
+export function pricePositionContract(position: Position, stockPrice: number, secondsLeft: number, baseIv: number) {
+  return priceOption(position.side, stockPrice, position.strike, secondsLeft, baseIv);
 }

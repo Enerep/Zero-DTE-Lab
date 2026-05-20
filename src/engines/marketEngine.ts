@@ -2,7 +2,7 @@ import { CANDLE_SECONDS, CONTRACT_MULTIPLIER, EXPIRATION_SECONDS, STARTING_CASH,
 import { clamp } from "../lib/math";
 import { ageEvents, maybeApplyRandomEvent } from "./eventEngine";
 import { explainTrade } from "./explanationEngine";
-import { buildChain, getContract } from "./optionsEngine";
+import { pricePositionContract } from "./optionsEngine";
 import type { Candle, SimState } from "../types";
 
 export function getSecondsLeft(tick: number) {
@@ -75,12 +75,11 @@ export function advanceMarket(state: SimState): SimState {
   const noise = (Math.random() - 0.5) * (0.34 + eventAdjusted.baseIv * 0.46);
   const nextPrice = Math.max(35, state.price + eventAdjusted.drift + noise + eventAdjusted.jump);
   const nextCandles = updateCandles(state.candles, nextTick, nextPrice);
-  const nextChain = buildChain(nextPrice, secondsLeft, eventAdjusted.baseIv);
 
   if (secondsLeft === 0 && state.positions.length > 0) {
     const expiredTrades = state.positions.map((position) => {
-      const contract = getContract(nextChain, position.contractId);
-      const exitPrice = contract?.bid ?? 0;
+      const contract = pricePositionContract(position, nextPrice, secondsLeft, eventAdjusted.baseIv);
+      const exitPrice = contract.bid;
       const realizedPl = (exitPrice - position.entryPrice) * position.quantity * CONTRACT_MULTIPLIER;
       const trade = {
         ...position,
