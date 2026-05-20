@@ -10,7 +10,7 @@ Build a fast trading-game interface where users can practice buying and selling 
 
 ## Core Features
 
-- Fake stock ticker with price updates every second.
+- Fake stock ticker with price updates every second and 5-second candlestick chart candles.
 - Simulated options chain with calls, puts, strikes, Greeks, IV, bid, ask, and mid.
 - Paper cash account for opening and closing option trades.
 - Portfolio view with cash, positions, market value, realized P/L, and unrealized P/L.

@@ -1,9 +1,9 @@
-import { CONTRACT_MULTIPLIER, EXPIRATION_SECONDS, STARTING_CASH, START_PRICE } from "../constants";
+import { CANDLE_SECONDS, CONTRACT_MULTIPLIER, EXPIRATION_SECONDS, STARTING_CASH, START_PRICE } from "../constants";
 import { clamp } from "../lib/math";
 import { ageEvents, maybeApplyRandomEvent } from "./eventEngine";
 import { explainTrade } from "./explanationEngine";
 import { buildChain, getContract } from "./optionsEngine";
-import type { SimState } from "../types";
+import type { Candle, SimState } from "../types";
 
 export function getSecondsLeft(tick: number) {
   return Math.max(0, EXPIRATION_SECONDS - tick);
@@ -13,7 +13,7 @@ export function initialState(): SimState {
   return {
     tick: 0,
     price: START_PRICE,
-    history: Array.from({ length: 36 }, (_, index) => START_PRICE + Math.sin(index / 4) * 0.4),
+    candles: createInitialCandles(),
     drift: 0.03,
     baseIv: 0.42,
     cash: STARTING_CASH,
@@ -32,6 +32,39 @@ export function initialState(): SimState {
   };
 }
 
+function createInitialCandles(): Candle[] {
+  return Array.from({ length: 24 }, (_, index) => {
+    const open = START_PRICE + Math.sin(index / 3) * 0.45;
+    const close = START_PRICE + Math.sin((index + 1) / 3) * 0.45;
+    return {
+      startTick: (index - 24) * CANDLE_SECONDS,
+      open,
+      high: Math.max(open, close) + 0.18,
+      low: Math.min(open, close) - 0.18,
+      close
+    };
+  });
+}
+
+function updateCandles(candles: Candle[], tick: number, price: number) {
+  const bucketStart = Math.floor(tick / CANDLE_SECONDS) * CANDLE_SECONDS;
+  const latest = candles.at(-1);
+
+  if (!latest || latest.startTick !== bucketStart) {
+    return [...candles.slice(-47), { startTick: bucketStart, open: price, high: price, low: price, close: price }];
+  }
+
+  return [
+    ...candles.slice(0, -1),
+    {
+      ...latest,
+      high: Math.max(latest.high, price),
+      low: Math.min(latest.low, price),
+      close: price
+    }
+  ];
+}
+
 export function advanceMarket(state: SimState): SimState {
   const nextTick = state.tick + 1;
   const secondsLeft = getSecondsLeft(nextTick);
@@ -41,7 +74,7 @@ export function advanceMarket(state: SimState): SimState {
   const eventAdjusted = maybeApplyRandomEvent(nextTick, secondsLeft, fadedDrift, fadedIv, agedEvents);
   const noise = (Math.random() - 0.5) * (0.34 + eventAdjusted.baseIv * 0.46);
   const nextPrice = Math.max(35, state.price + eventAdjusted.drift + noise + eventAdjusted.jump);
-  const nextHistory = [...state.history.slice(-59), nextPrice];
+  const nextCandles = updateCandles(state.candles, nextTick, nextPrice);
   const nextChain = buildChain(nextPrice, secondsLeft, eventAdjusted.baseIv);
 
   if (secondsLeft === 0 && state.positions.length > 0) {
@@ -65,7 +98,7 @@ export function advanceMarket(state: SimState): SimState {
       ...state,
       tick: nextTick,
       price: nextPrice,
-      history: nextHistory,
+      candles: nextCandles,
       drift: eventAdjusted.drift,
       baseIv: eventAdjusted.baseIv,
       positions: [],
@@ -89,7 +122,7 @@ export function advanceMarket(state: SimState): SimState {
     ...state,
     tick: nextTick,
     price: nextPrice,
-    history: nextHistory,
+    candles: nextCandles,
     drift: eventAdjusted.drift,
     baseIv: eventAdjusted.baseIv,
     events: eventAdjusted.events

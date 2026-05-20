@@ -22,7 +22,7 @@ import {
   sellToClose
 } from "./engines/portfolioEngine";
 import { dollars, formatSeconds, signedDollars } from "./lib/format";
-import type { ChainRow, Contract, Position } from "./types";
+import type { Candle, ChainRow, Contract, Position } from "./types";
 import "./styles.css";
 
 function App() {
@@ -77,8 +77,8 @@ function App() {
 
       <div className="dashboard-grid">
         <section className="panel chart-panel">
-          <PanelTitle icon={<LineChart size={18} />} title="Live Chart" meta="1s ticks" />
-          <PriceChart values={state.history} />
+          <PanelTitle icon={<LineChart size={18} />} title="Live Chart" meta="5s candles" />
+          <CandlestickChart candles={state.candles} />
         </section>
 
         <section className="panel chain-panel">
@@ -180,25 +180,36 @@ function PanelTitle({ icon, title, meta }: { icon: ReactNode; title: string; met
   );
 }
 
-function PriceChart({ values }: { values: number[] }) {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+function CandlestickChart({ candles }: { candles: Candle[] }) {
+  const min = Math.min(...candles.map((candle) => candle.low));
+  const max = Math.max(...candles.map((candle) => candle.high));
   const range = Math.max(1, max - min);
-  const points = values
-    .map((value, index) => {
-      const x = (index / Math.max(1, values.length - 1)) * 100;
-      const y = 100 - ((value - min) / range) * 88 - 6;
-      return `${x},${y}`;
-    })
-    .join(" ");
+  const candleWidth = Math.max(0.9, 70 / Math.max(1, candles.length));
+  const yFor = (value: number) => 100 - ((value - min) / range) * 88 - 6;
 
   return (
     <div className="chart-wrap">
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Fake ZLAB price chart">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Fake ZLAB candlestick chart">
         <polyline className="chart-grid" points="0,25 100,25" />
         <polyline className="chart-grid" points="0,50 100,50" />
         <polyline className="chart-grid" points="0,75 100,75" />
-        <polyline className="chart-line" points={points} />
+        {candles.map((candle, index) => {
+          const x = (index / Math.max(1, candles.length - 1)) * 82 + 4;
+          const openY = yFor(candle.open);
+          const closeY = yFor(candle.close);
+          const highY = yFor(candle.high);
+          const lowY = yFor(candle.low);
+          const bodyTop = Math.min(openY, closeY);
+          const bodyHeight = Math.max(0.9, Math.abs(openY - closeY));
+          const isUp = candle.close >= candle.open;
+
+          return (
+            <g className={isUp ? "candle candle-up" : "candle candle-down"} key={candle.startTick}>
+              <line x1={x} x2={x} y1={highY} y2={lowY} />
+              <rect x={x - candleWidth / 2} y={bodyTop} width={candleWidth} height={bodyHeight} rx="0.35" />
+            </g>
+          );
+        })}
       </svg>
       <div className="chart-axis">
         <span>{dollars(max)}</span>

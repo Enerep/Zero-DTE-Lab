@@ -47,10 +47,18 @@ export type MarketEvent = {
   ttl: number;
 };
 
+export type Candle = {
+  startTick: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+};
+
 export type SimState = {
   tick: number;
   price: number;
-  history: number[];
+  candles: Candle[];
   drift: number;
   baseIv: number;
   cash: number;

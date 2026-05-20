@@ -181,13 +181,26 @@ h1 {
   stroke-width: 0.45;
 }
 
-.chart-line {
-  fill: none;
-  stroke: #33d6b0;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2.6;
-  filter: drop-shadow(0 0 8px rgba(51, 214, 176, 0.35));
+.candle line {
+  stroke-width: 0.55;
+}
+
+.candle rect {
+  stroke-width: 0.25;
+}
+
+.candle-up line,
+.candle-up rect {
+  fill: #45d483;
+  stroke: #45d483;
+  filter: drop-shadow(0 0 5px rgba(69, 212, 131, 0.28));
+}
+
+.candle-down line,
+.candle-down rect {
+  fill: #ff6b6b;
+  stroke: #ff6b6b;
+  filter: drop-shadow(0 0 5px rgba(255, 107, 107, 0.25));
 }
 
 .chart-axis {
